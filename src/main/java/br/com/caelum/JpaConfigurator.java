@@ -6,9 +6,10 @@ import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -22,19 +23,19 @@ public class JpaConfigurator {
 
 	@Bean
 	public DataSource getDataSource() throws PropertyVetoException {
-		
+
 		ComboPooledDataSource dataSource = new ComboPooledDataSource();
 
-	    dataSource.setDriverClass("com.mysql.jdbc.Driver");    
-	    dataSource.setJdbcUrl("jdbc:mysql://localhost/projeto_jpa");
-	    dataSource.setUser("root");
-	    dataSource.setPassword("123");
+		dataSource.setDriverClass("com.mysql.jdbc.Driver");
+		dataSource.setJdbcUrl("jdbc:mysql://localhost/projeto_jpa");
+		dataSource.setUser("root");
+		dataSource.setPassword("123");
 
-	    dataSource.setMinPoolSize(3);
-	    dataSource.setMaxPoolSize(5);
-	    dataSource.setIdleConnectionTestPeriod(1);
+		dataSource.setMinPoolSize(3);
+		dataSource.setMaxPoolSize(5);
+		dataSource.setIdleConnectionTestPeriod(1);
 
-	    return dataSource;
+		return dataSource;
 	}
 
 	@Bean
@@ -44,8 +45,7 @@ public class JpaConfigurator {
 		entityManagerFactory.setPackagesToScan("br.com.caelum");
 		entityManagerFactory.setDataSource(dataSource);
 
-		entityManagerFactory
-				.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+		entityManagerFactory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
 		Properties props = new Properties();
 
@@ -55,6 +55,7 @@ public class JpaConfigurator {
 		props.setProperty("hibernate.cache.use_second_level_cache", "true");
 		props.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory");
 		props.setProperty("hibernate.cache.use_query_cache", "true");
+		props.setProperty("hibernate.generate_statistics", "true");
 
 		entityManagerFactory.setJpaProperties(props);
 		return entityManagerFactory;
@@ -66,6 +67,11 @@ public class JpaConfigurator {
 		transactionManager.setEntityManagerFactory(emf);
 
 		return transactionManager;
+	}
+
+	@Bean
+	public Statistics statistics(EntityManagerFactory emf) {
+		return emf.unwrap(SessionFactory.class).getStatistics();
 	}
 
 }
